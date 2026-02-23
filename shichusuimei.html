@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四柱推命 命式鑑定</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500;700;900&family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8CC80;
+    --gold-dark: #8B6914;
+    --deep: #0A0A14;
+    --ink: #12121F;
+    --paper: #F5EDD6;
+    --paper-dark: #E8D9B8;
+    --red-seal: #8B1A1A;
+    --text-dark: #1A1008;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--deep);
+    min-height: 100vh;
+    font-family: 'Noto Serif JP', serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 40px 20px;
+    background-image: 
+      radial-gradient(ellipse at 20% 50%, rgba(201,168,76,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(139,26,26,0.06) 0%, transparent 50%);
+  }
+
+  .page-title {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 13px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    opacity: 0.8;
+  }
+
+  .page-subtitle {
+    color: var(--gold-light);
+    font-size: 28px;
+    letter-spacing: 8px;
+    margin-bottom: 50px;
+    font-weight: 300;
+  }
+
+  /* INPUT SECTION */
+  .input-section {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.3);
+    padding: 40px 50px;
+    max-width: 480px;
+    width: 100%;
+    position: relative;
+    margin-bottom: 40px;
+  }
+
+  .input-section::before,
+  .input-section::after {
+    content: '◆';
+    color: var(--gold);
+    position: absolute;
+    font-size: 10px;
+  }
+  .input-section::before { top: 12px; left: 12px; }
+  .input-section::after { bottom: 12px; right: 12px; }
+
+  .corner-tl, .corner-tr, .corner-bl, .corner-br {
+    position: absolute;
+    width: 20px; height: 20px;
+    border-color: var(--gold);
+    border-style: solid;
+    opacity: 0.6;
+  }
+  .corner-tl { top: 6px; left: 6px; border-width: 1px 0 0 1px; }
+  .corner-tr { top: 6px; right: 6px; border-width: 1px 1px 0 0; }
+  .corner-bl { bottom: 6px; left: 6px; border-width: 0 0 1px 1px; }
+  .corner-br { bottom: 6px; right: 6px; border-width: 0 1px 1px 0; }
+
+  .input-label {
+    color: var(--gold-light);
+    font-size: 13px;
+    letter-spacing: 4px;
+    display: block;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .date-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+
+  .date-field {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .date-field label {
+    color: rgba(201,168,76,0.6);
+    font-size: 11px;
+    letter-spacing: 2px;
+  }
+
+  .date-field input {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(201,168,76,0.4);
+    color: var(--gold-light);
+    font-family: 'Noto Serif JP', serif;
+    font-size: 18px;
+    text-align: center;
+    padding: 10px;
+    outline: none;
+    transition: border-color 0.3s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .date-field input:focus {
+    border-color: var(--gold);
+    background: rgba(255,255,255,0.09);
+  }
+
+  .date-field input[type="number"] { width: 72px; }
+  .year-field input[type="number"] { width: 90px; }
+
+  .sep {
+    color: var(--gold);
+    font-size: 20px;
+    padding-top: 18px;
+    opacity: 0.5;
+  }
+
+  .btn-divine {
+    display: block;
+    width: 100%;
+    background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold) 50%, var(--gold-dark) 100%);
+    color: var(--deep);
+    border: none;
+    padding: 14px;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-divine:hover {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+    box-shadow: 0 0 30px rgba(201,168,76,0.4);
+  }
+
+  .btn-divine:active { transform: scale(0.99); }
+
+  /* CERTIFICATE */
+  .certificate {
+    display: none;
+    max-width: 700px;
+    width: 100%;
+    background: var(--paper);
+    position: relative;
+    padding: 60px 70px;
+    animation: revealCert 0.8s ease forwards;
+    box-shadow: 0 0 80px rgba(0,0,0,0.8), 0 0 30px rgba(201,168,76,0.15);
+  }
+
+  @keyframes revealCert {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Decorative border */
+  .cert-border-outer {
+    position: absolute;
+    inset: 12px;
+    border: 2px solid var(--gold);
+    pointer-events: none;
+  }
+
+  .cert-border-inner {
+    position: absolute;
+    inset: 18px;
+    border: 0.5px solid var(--gold-dark);
+    pointer-events: none;
+  }
+
+  .cert-corner {
+    position: absolute;
+    width: 30px; height: 30px;
+  }
+  .cert-corner svg { width: 100%; height: 100%; }
+
+  .cc-tl { top: 8px; left: 8px; }
+  .cc-tr { top: 8px; right: 8px; transform: scaleX(-1); }
+  .cc-bl { bottom: 8px; left: 8px; transform: scaleY(-1); }
+  .cc-br { bottom: 8px; right: 8px; transform: scale(-1); }
+
+  /* CERT HEADER */
+  .cert-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(139,105,20,0.4);
+    position: relative;
+  }
+
+  .cert-header::after {
+    content: '❖ ─────── ❖ ─────── ❖';
+    display: block;
+    color: var(--gold-dark);
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-top: 14px;
+    opacity: 0.7;
+  }
+
+  .cert-org {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 5px;
+    color: var(--gold-dark);
+    margin-bottom: 10px;
+  }
+
+  .cert-title-main {
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--text-dark);
+    letter-spacing: 10px;
+    line-height: 1.3;
+  }
+
+  .cert-title-sub {
+    font-size: 12px;
+    color: rgba(26,16,8,0.5);
+    letter-spacing: 4px;
+    margin-top: 6px;
+  }
+
+  /* PILLARS ROW */
+  .pillars-section {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  .pillar-card {
+    background: rgba(26,16,8,0.07);
+    border: 1px solid rgba(139,105,20,0.4);
+    padding: 12px 16px;
+    text-align: center;
+    min-width: 70px;
+  }
+
+  .pillar-name {
+    font-size: 9px;
+    color: var(--gold-dark);
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+  }
+
+  .pillar-kanji {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-dark);
+    line-height: 1.2;
+  }
+
+  .pillar-reading {
+    font-size: 9px;
+    color: rgba(26,16,8,0.5);
+    margin-top: 4px;
+    letter-spacing: 1px;
+  }
+
+  .pillar-card.highlight {
+    background: rgba(139,26,26,0.08);
+    border-color: var(--red-seal);
+    border-width: 2px;
+  }
+
+  .pillar-card.highlight .pillar-kanji {
+    color: var(--red-seal);
+  }
+
+  /* MAIN TYPE */
+  .type-section {
+    text-align: center;
+    margin: 20px 0;
+    padding: 24px;
+    background: rgba(26,16,8,0.05);
+    border: 1px solid rgba(139,105,20,0.3);
+    position: relative;
+  }
+
+  .type-label {
+    font-size: 10px;
+    letter-spacing: 5px;
+    color: var(--gold-dark);
+    margin-bottom: 10px;
+  }
+
+  .type-element-badge {
+    display: inline-block;
+    width: 70px; height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    font-weight: 900;
+    margin: 0 auto 12px;
+    border: 3px solid;
+  }
+
+  .type-name {
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+  }
+
+  .type-reading {
+    font-size: 12px;
+    color: rgba(26,16,8,0.5);
+    letter-spacing: 3px;
+  }
+
+  /* DESCRIPTION */
+  .desc-section {
+    margin: 20px 0;
+  }
+
+  .desc-title {
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--gold-dark);
+    margin-bottom: 12px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .desc-title::before, .desc-title::after {
+    content: '';
+    flex: 1;
+    height: 0.5px;
+    background: rgba(139,105,20,0.4);
+  }
+
+  .desc-text {
+    font-size: 13px;
+    color: var(--text-dark);
+    line-height: 2;
+    letter-spacing: 0.5px;
+    text-align: justify;
+  }
+
+  /* TRAITS */
+  .traits-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 20px 0;
+  }
+
+  .trait-item {
+    background: rgba(26,16,8,0.05);
+    border-left: 3px solid var(--gold-dark);
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text-dark);
+    letter-spacing: 1px;
+  }
+
+  .trait-item strong {
+    display: block;
+    font-size: 10px;
+    color: var(--gold-dark);
+    letter-spacing: 3px;
+    margin-bottom: 3px;
+  }
+
+  /* FOOTER */
+  .cert-footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(139,105,20,0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .cert-date-issued {
+    font-size: 11px;
+    color: rgba(26,16,8,0.5);
+    letter-spacing: 2px;
+  }
+
+  .seal {
+    width: 80px; height: 80px;
+    border: 3px double var(--red-seal);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: var(--red-seal);
+    position: relative;
+    opacity: 0.85;
+  }
+
+  .seal-text {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .seal-kanji {
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .cert-issuer {
+    font-size: 12px;
+    color: rgba(26,16,8,0.6);
+    letter-spacing: 2px;
+    text-align: right;
+  }
+
+  .cta-note {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(139,26,26,0.07);
+    border: 1px solid rgba(139,26,26,0.25);
+    text-align: center;
+    font-size: 12px;
+    color: rgba(26,16,8,0.65);
+    letter-spacing: 1.5px;
+    line-height: 2;
+  }
+
+  .cta-note strong {
+    color: var(--red-seal);
+    font-size: 14px;
+    display: block;
+    margin-bottom: 6px;
+    letter-spacing: 3px;
+  }
+
+  .error-msg {
+    color: #ff6b6b;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 12px;
+    letter-spacing: 2px;
+    display: none;
+  }
+
+  .five-elements-section {
+    margin-top: 28px;
+    padding: 22px 24px;
+    background: rgba(26,16,8,0.04);
+    border: 1px solid rgba(139,105,20,0.3);
+  }
+
+  .fe-title {
+    font-size: 10px;
+    letter-spacing: 5px;
+    color: var(--gold-dark);
+    text-align: center;
+    margin-bottom: 18px;
+  }
+
+  .fe-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .fe-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .fe-label {
+    width: 32px;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .fe-label-name {
+    width: 22px;
+    font-size: 9px;
+    color: rgba(26,16,8,0.45);
+    letter-spacing: 1px;
+    flex-shrink: 0;
+  }
+
+  .fe-track {
+    flex: 1;
+    height: 10px;
+    background: rgba(26,16,8,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .fe-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+    position: relative;
+  }
+
+  .fe-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 50%;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px 2px 0 0;
+  }
+
+  .fe-count {
+    width: 28px;
+    font-size: 11px;
+    color: rgba(26,16,8,0.5);
+    text-align: right;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .fe-note {
+    margin-top: 14px;
+    font-size: 11px;
+    color: rgba(26,16,8,0.6);
+    letter-spacing: 1px;
+    line-height: 1.9;
+    text-align: center;
+    border-top: 0.5px solid rgba(139,105,20,0.3);
+    padding-top: 12px;
+  }
+    .certificate { padding: 40px 30px; }
+    .traits-grid { grid-template-columns: 1fr; }
+    .pillars-section { gap: 8px; }
+    .pillar-card { min-width: 55px; padding: 10px 10px; }
+    .pillar-kanji { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<p class="page-title">四柱推命専門鑑定士　俊</p>
+<p class="page-subtitle">四 柱 推 命</p>
+
+<div class="input-section">
+  <div class="corner-tl"></div>
+  <div class="corner-tr"></div>
+  <div class="corner-bl"></div>
+  <div class="corner-br"></div>
+
+  <label class="input-label">── 生 年 月 日 入 力 ──</label>
+
+  <div class="date-input-row">
+    <div class="date-field year-field">
+      <label>年</label>
+      <input type="number" id="year" placeholder="1990" min="1920" max="2006">
+    </div>
+    <span class="sep">／</span>
+    <div class="date-field">
+      <label>月</label>
+      <input type="number" id="month" placeholder="1" min="1" max="12">
+    </div>
+    <span class="sep">／</span>
+    <div class="date-field">
+      <label>日</label>
+      <input type="number" id="day" placeholder="1" min="1" max="31">
+    </div>
+  </div>
+
+  <label class="input-label" style="margin-top:4px">── 出 生 時 刻 ──</label>
+  <div class="date-input-row" style="margin-bottom:8px">
+    <div class="date-field">
+      <label>時</label>
+      <input type="number" id="hour" placeholder="例：14" min="0" max="23">
+    </div>
+    <span class="sep">：</span>
+    <div class="date-field">
+      <label>分</label>
+      <input type="number" id="minute" placeholder="00" min="0" max="59">
+    </div>
+  </div>
+  <p style="text-align:center;font-size:10px;color:rgba(201,168,76,0.5);letter-spacing:2px;margin-bottom:20px">※ 時刻不明の場合は空欄でも鑑定できます</p>
+  <button class="btn-divine" onclick="divine()">鑑　定　開　始</button>
+  <div class="error-msg" id="errMsg">※ 正しい生年月日を入力してください</div>
+  <div class="error-msg" id="errMsg">※ 正しい生年月日を入力してください</div>
+</div>
+
+<div class="certificate" id="certificate">
+  <!-- decorative border corners -->
+  <div class="cert-border-outer"></div>
+  <div class="cert-border-inner"></div>
+  <div class="cert-corner cc-tl">
+    <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 28 L2 2 L28 2" stroke="#8B6914" stroke-width="1.5"/>
+      <circle cx="2" cy="2" r="3" fill="#C9A84C"/>
+    </svg>
+  </div>
+  <div class="cert-corner cc-tr">
+    <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 28 L2 2 L28 2" stroke="#8B6914" stroke-width="1.5"/>
+      <circle cx="2" cy="2" r="3" fill="#C9A84C"/>
+    </svg>
+  </div>
+  <div class="cert-corner cc-bl">
+    <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 28 L2 2 L28 2" stroke="#8B6914" stroke-width="1.5"/>
+      <circle cx="2" cy="2" r="3" fill="#C9A84C"/>
+    </svg>
+  </div>
+  <div class="cert-corner cc-br">
+    <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 28 L2 2 L28 2" stroke="#8B6914" stroke-width="1.5"/>
+      <circle cx="2" cy="2" r="3" fill="#C9A84C"/>
+    </svg>
+  </div>
+
+  <div class="cert-header">
+    <p class="cert-org">四柱推命専門鑑定士　俊　─　命式鑑定書</p>
+    <p class="cert-title-main">命　式　鑑　定　書</p>
+    <p class="cert-title-sub">Four Pillars of Destiny — Personal Reading</p>
+  </div>
+
+  <!-- Pillars -->
+  <div class="pillars-section" id="pillarsRow"></div>
+
+  <!-- Type -->
+  <div class="type-section" id="typeSection"></div>
+
+  <!-- Description -->
+  <div class="desc-section">
+    <div class="desc-title">本 命 解 説</div>
+    <p class="desc-text" id="descText"></p>
+  </div>
+
+  <!-- Traits -->
+  <div id="traitsGrid" class="traits-grid"></div>
+
+  <!-- Footer -->
+  <div class="cert-footer">
+    <div class="cert-date-issued" id="issuedDate"></div>
+    <div class="seal">
+      <div class="seal-kanji">命</div>
+      <div class="seal-text">鑑定<br>之印</div>
+    </div>
+    <div class="cert-issuer">
+      四柱推命専門鑑定士<br>
+      <span style="font-size:18px;font-weight:900;letter-spacing:4px;">俊</span>
+    </div>
+  </div>
+
+  <!-- Five Elements Balance -->
+  <div class="five-elements-section">
+    <div class="fe-title">五　行　バ　ラ　ン　ス</div>
+    <div class="fe-bars" id="feBars"></div>
+    <div class="fe-note" id="feNote"></div>
+  </div>
+</div>
+
+<script>
+// ── 天干・地支データ ──────────────────────────────────
+const STEMS = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const BRANCHES = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const STEM_READ = ['きのえ','きのと','ひのえ','ひのと','つちのえ','つちのと','かのえ','かのと','みずのえ','みずのと'];
+const BRANCH_READ = ['ね','うし','とら','う','たつ','み','うま','ひつじ','さる','とり','いぬ','い'];
+
+// 日干情報 (element, color, badge)
+const STEM_DATA = {
+  '甲': { element:'木', nature:'陽木', reading:'甲木（きのえ）', color:'#2D6A2D', bg:'rgba(45,106,45,0.12)', traits:['決断力が強い','リーダーシップ','真っ直ぐな正義感','強いこだわり'], desc:'大樹のような強さと存在感を持つ、陽の木の気。まっすぐ天へと伸びる大木のごとく、高い志と揺るぎない信念を持ちます。リーダー的素質があり、周囲を引っ張る力に恵まれています。一方でこだわりが強く、融通が利かない面も。命式に火の気が旺じると志が輝きを増し、水の気が支えることで知恵と忍耐が加わります。己の信念を貫くことで、天命が大きく花開く命式です。' },
+  '乙': { element:'木', nature:'陰木', reading:'乙木（きのと）', color:'#3D8C3D', bg:'rgba(61,140,61,0.12)', traits:['柔軟な適応力','人脈づくりが得意','美的センス','しなやかな粘り強さ'], desc:'草花のようにしなやかで美しい、陰の木の気。環境に柔軟に適応しながらも、根をしっかり張り生き抜く力を持ちます。人との縁を大切にし、ネットワーク構築に長けています。美的感覚が豊かで、芸術やデザインの分野に天賦の才があります。金の気が強まる流年には特に実力を発揮しやすく、水の気が命式に多いほど豊かな感性と表現力がさらに磨かれます。' },
+  '丙': { element:'火', nature:'陽火', reading:'丙火（ひのえ）', color:'#B34000', bg:'rgba(179,64,0,0.12)', traits:['圧倒的な行動力','人を惹きつける魅力','情熱的な表現力','天真爛漫'], desc:'太陽のように輝き、全てを照らす陽の火の気。その場を明るく照らす強烈な個性と存在感を持ち、自然と人が集まってきます。行動力と情熱があふれ、アイデアを即座に形にする力があります。木の気が旺じると才能がさらに開花し、人の上に立つ運勢を得やすい命式です。晩年に向けて大輪を咲かせる、スケールの大きな天命を持ちます。' },
+  '丁': { element:'火', nature:'陰火', reading:'丁火（ひのと）', color:'#CC5500', bg:'rgba(204,85,0,0.12)', traits:['繊細な感受性','深い洞察力','人の心を温める力','芸術的センス'], desc:'ろうそくの炎のように温かく、人の心を照らす陰の火の気。繊細な感受性と深い思いやりで、人の心に寄り添う力を持ちます。芸術や文化への関心が高く、独自の世界観を表現する才能があります。命式に木の気が多いほど輝きを増し、人を導く役割が強まります。表に出るより陰から照らすことで真価を発揮し、信頼と徳を積み重ねる命式です。' },
+  '戊': { element:'土', nature:'陽土', reading:'戊土（つちのえ）', color:'#8B5E00', bg:'rgba(139,94,0,0.12)', traits:['揺るぎない安定感','大きなビジョン','包容力','粘り強さ'], desc:'大山のようにどっしりとした、陽の土の気。大きな包容力と安定感で、周囲に安心をもたらします。長期的なビジョンを描き、着実に物事を積み上げる力があります。命式に火の気が加わると威厳が増し、人を束ねる力が強化されます。急がず腰を落ち着けるほど運勢が安定し、晩年に向けて厚みのある人生を歩む命式です。' },
+  '己': { element:'土', nature:'陰土', reading:'己土（つちのと）', color:'#9B6E10', bg:'rgba(155,110,16,0.12)', traits:['細やかな気配り','実務処理能力','柔軟な思考','縁の下の力持ち'], desc:'田畑のように豊かで実りある、陰の土の気。細やかな気配りと実務能力で、組織やチームの要となります。柔軟な思考と現実的な判断力を持ち、アイデアを形にする実行力があります。火の気が命式に揃うと運気が一気に花開き、金の気が旺じると財運に恵まれやすくなります。人の縁を大切にすることが運勢を高める鍵となる命式です。' },
+  '庚': { element:'金', nature:'陽金', reading:'庚金（かのえ）', color:'#5A5A7A', bg:'rgba(90,90,122,0.12)', traits:['鋭い判断力','正義感の強さ','変革への意志','頭の切れ','潔い決断力'], desc:'鋭く研ぎ澄まされた刃のような、陽の金の気。論理的な思考と鋭い判断力で、物事の本質を見抜きます。既存の枠組みを壊し、新しいものを創り出す変革者の資質があります。命式に火の気が旺じると鉄が精錬されるごとく才能が磨かれ、水の気が流れることで知恵と財運が広がります。一度定めた道を貫く意志の強さが、天命を切り拓く力となります。' },
+  '辛': { element:'金', nature:'陰金', reading:'辛金（かのと）', color:'#7A7A9A', bg:'rgba(122,122,154,0.12)', traits:['美への鋭いセンス','完璧主義','細部へのこだわり','洗練された表現力'], desc:'宝石のように輝き磨かれた、陰の金の気。審美眼と完璧主義で、高品質なものを生み出す才能があります。細部にまでこだわる繊細さと、洗練されたセンスを持ちます。水の気が命式に多いほど輝きと品格が増し、財運・名声ともに恵まれやすくなります。磨かれれば磨かれるほど輝く宝石のごとく、人生経験を積むほどに真価が現れる命式です。' },
+  '壬': { element:'水', nature:'陽水', reading:'壬水（みずのえ）', color:'#1A5A8A', bg:'rgba(26,90,138,0.12)', traits:['大きな知的好奇心','先見の明','自由な発想','スケールの大きさ'], desc:'広大な海のようにスケールが大きく、深い陽の水の気。底知れぬ知識欲と自由な発想力で、常に新しいものを求め続けます。先見の明があり、時代の流れを読む力に長けています。金の気が命式を支えると行動力が増し、木の気が旺じることで知性が実を結びます。流れを止めず前進し続けることで、天命が大きく開く命式です。' },
+  '癸': { element:'水', nature:'陰水', reading:'癸水（みずのと）', color:'#2A6A9A', bg:'rgba(42,106,154,0.12)', traits:['深い共感力と洞察','緻密な情報収集力','隠れた才能の発揮','神秘的な直感'], desc:'霧雨のように静かに深く浸透する、陰の水の気。深い洞察力と緻密な情報収集力で、物事の背景にある真実を見抜きます。強い共感力と直感を持ち、人の気持ちを敏感に感じ取ります。命式に金の気が多いほど才知が輝き、木の気が育つことで感性と表現力が豊かになります。表には出ずとも、静かに人の心を動かす深い影響力を持つ命式です。' },
+};
+
+// ── 日付 → 日柱計算 ──────────────────────────────────
+// 基準：1900/1/1 = 庚子（甲=0, 庚=6; 子=0）
+const BASE = new Date(1900, 0, 1);
+const BASE_STEM = 6; // 庚
+const BASE_BRANCH = 0; // 子
+
+function getDayPillar(year, month, day) {
+  const d = new Date(year, month - 1, day);
+  const diff = Math.floor((d - BASE) / 86400000);
+  const si = ((diff % 10) + 10 + BASE_STEM) % 10;
+  const bi = ((diff % 12) + 12 + BASE_BRANCH) % 12;
+  return { stem: STEMS[si], branch: BRANCHES[bi], stemIdx: si, branchIdx: bi };
+}
+
+// 年柱・月柱の簡易計算（表示用のみ）
+function getYearPillar(year) {
+  const si = ((year - 1900) % 10 + 10 + BASE_STEM) % 10;
+  const bi = ((year - 1900) % 12 + 12 + BASE_BRANCH) % 12;
+  return { stem: STEMS[si], branch: BRANCHES[bi] };
+}
+
+function getMonthPillar(year, month) {
+  // 月柱の正確計算（節入日考慮）は複雑なため簡易版
+  const totalMonths = (year - 1900) * 12 + (month - 1);
+  const si = ((totalMonths * 2) % 10 + 10) % 10; // 年干に依存するが簡易版
+  const bi = (month + 1) % 12;
+  return { stem: STEMS[si], branch: BRANCHES[bi] };
+}
+
+// 時柱計算（日干支から時柱天干を求める）
+// 時支：子(23-1時), 丑(1-3), 寅(3-5), 卯(5-7), 辰(7-9), 巳(9-11), 午(11-13), 未(13-15), 申(15-17), 酉(17-19), 戌(19-21), 亥(21-23)
+function getHourBranch(hour) {
+  // 子=0(23,0), 丑=1(1,2), 寅=2(3,4), 卯=3(5,6), 辰=4(7,8), 巳=5(9,10), 午=6(11,12), 未=7(13,14), 申=8(15,16), 酉=9(17,18), 戌=10(19,20), 亥=11(21,22)
+  if (hour === 23 || hour === 0) return 0;
+  return Math.floor((hour + 1) / 2);
+}
+
+function getHourPillar(dayStemIdx, hour) {
+  const hBranchIdx = getHourBranch(hour);
+  // 時干は日干から決まる（甲己日→甲子起、乙庚日→丙子起、丙辛日→戊子起、丁壬日→庚子起、戊癸日→壬子起）
+  const startStem = [0, 2, 4, 6, 8][ dayStemIdx % 5 ];
+  const hStemIdx = (startStem + hBranchIdx) % 10;
+  return { stem: STEMS[hStemIdx], branch: BRANCHES[hBranchIdx], stemIdx: hStemIdx, branchIdx: hBranchIdx };
+}
+function divine() {
+  const y = parseInt(document.getElementById('year').value);
+  const m = parseInt(document.getElementById('month').value);
+  const d = parseInt(document.getElementById('day').value);
+  const hVal = document.getElementById('hour').value;
+  const minVal = document.getElementById('minute').value;
+  const errEl = document.getElementById('errMsg');
+
+  if (!y || !m || !d || y < 1920 || y > 2006 || m < 1 || m > 12 || d < 1 || d > 31) {
+    errEl.style.display = 'block'; return;
+  }
+  errEl.style.display = 'none';
+  const testDate = new Date(y, m - 1, d);
+  if (testDate.getMonth() !== m - 1) { errEl.style.display = 'block'; return; }
+
+  const hasTime = hVal !== '' && hVal !== null && hVal !== undefined;
+  const hour = hasTime ? parseInt(hVal) : null;
+
+  const yearP = getYearPillar(y);
+  const monthP = getMonthPillar(y, m);
+  const dayP = getDayPillar(y, m, d);
+  const hourP = hasTime ? getHourPillar(dayP.stemIdx, hour) : null;
+
+  const cert = document.getElementById('certificate');
+  cert.style.display = 'block';
+
+  // PILLARS
+  const pillarsRow = document.getElementById('pillarsRow');
+  const timeStr = hasTime
+    ? `${String(hour).padStart(2,'0')}:${String(parseInt(minVal)||0).padStart(2,'0')}`
+    : null;
+  const hourCard = hourP
+    ? `<div class="pillar-card">
+        <div class="pillar-name">時　柱</div>
+        <div class="pillar-kanji">${hourP.stem}</div>
+        <div class="pillar-kanji" style="font-size:16px">${hourP.branch}</div>
+        <div class="pillar-reading">${STEM_READ[hourP.stemIdx]}・${BRANCH_READ[hourP.branchIdx]}</div>
+        <div class="pillar-reading" style="margin-top:4px;color:var(--gold-dark)">${timeStr}</div>
+       </div>`
+    : `<div class="pillar-card" style="opacity:0.4">
+        <div class="pillar-name">時　柱</div>
+        <div class="pillar-kanji">─</div>
+        <div class="pillar-kanji" style="font-size:16px">─</div>
+        <div class="pillar-reading">時刻不明</div>
+       </div>`;
+
+  pillarsRow.innerHTML = `
+    <div class="pillar-card">
+      <div class="pillar-name">年　柱</div>
+      <div class="pillar-kanji">${yearP.stem}</div>
+      <div class="pillar-kanji" style="font-size:16px">${yearP.branch}</div>
+      <div class="pillar-reading">${STEM_READ[STEMS.indexOf(yearP.stem)]}・${BRANCH_READ[BRANCHES.indexOf(yearP.branch)]}</div>
+    </div>
+    <div class="pillar-card">
+      <div class="pillar-name">月　柱</div>
+      <div class="pillar-kanji">${monthP.stem}</div>
+      <div class="pillar-kanji" style="font-size:16px">${monthP.branch}</div>
+      <div class="pillar-reading">${STEM_READ[STEMS.indexOf(monthP.stem)]}・${BRANCH_READ[BRANCHES.indexOf(monthP.branch)]}</div>
+    </div>
+    <div class="pillar-card highlight">
+      <div class="pillar-name">日　柱　▶ 日主</div>
+      <div class="pillar-kanji">${dayP.stem}</div>
+      <div class="pillar-kanji" style="font-size:16px">${dayP.branch}</div>
+      <div class="pillar-reading">${STEM_READ[dayP.stemIdx]}・${BRANCH_READ[dayP.branchIdx]}</div>
+    </div>
+    ${hourCard}
+  `;
+
+  // TYPE SECTION
+  const data = STEM_DATA[dayP.stem];
+  const typeSection = document.getElementById('typeSection');
+  typeSection.style.background = data.bg;
+  typeSection.innerHTML = `
+    <div class="type-label">── 日　主　（あなたの本質タイプ） ──</div>
+    <div class="type-element-badge" style="background:${data.bg};border-color:${data.color};color:${data.color}">${data.element}</div>
+    <div class="type-name">${data.nature}　「${dayP.stem}」</div>
+    <div class="type-reading">${data.reading}</div>
+  `;
+
+  // DESC
+  document.getElementById('descText').textContent = data.desc;
+
+  // TRAITS
+  const traitsGrid = document.getElementById('traitsGrid');
+  traitsGrid.innerHTML = data.traits.map(t => `
+    <div class="trait-item"><strong>特　質</strong>${t}</div>
+  `).join('');
+
+  // FOOTER DATE
+  const now = new Date();
+  document.getElementById('issuedDate').textContent = 
+    `鑑定日：${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+
+  // Five Elements
+  buildFiveElements(yearP, monthP, dayP, hourP);
+
+  // scroll to cert
+  cert.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function buildFiveElements(yearP, monthP, dayP, hourP) {
+  const FE = {
+    '甲':'木','乙':'木','丙':'火','丁':'火','戊':'土','己':'土','庚':'金','辛':'金','壬':'水','癸':'水',
+    '子':'水','丑':'土','寅':'木','卯':'木','辰':'土','巳':'火','午':'火','未':'土','申':'金','酉':'金','戌':'土','亥':'水'
+  };
+  const counts = { 木:0, 火:0, 土:0, 金:0, 水:0 };
+  const keys = [yearP.stem, yearP.branch, monthP.stem, monthP.branch, dayP.stem, dayP.branch];
+  if (hourP) keys.push(hourP.stem, hourP.branch);
+  keys.forEach(k => { if (FE[k]) counts[FE[k]]++; });
+  const total = keys.length;
+
+  const ELEM_CONFIG = [
+    { key:'木', color:'#2D7A2D' },
+    { key:'火', color:'#C45000' },
+    { key:'土', color:'#9B7A10' },
+    { key:'金', color:'#7070A0' },
+    { key:'水', color:'#2060A0' },
+  ];
+
+  const barsEl = document.getElementById('feBars');
+  barsEl.innerHTML = ELEM_CONFIG.map(e => {
+    const pct = Math.round((counts[e.key] / total) * 100);
+    return `
+      <div class="fe-row">
+        <span class="fe-label" style="color:${e.color}">${e.key}</span>
+        <div class="fe-track">
+          <div class="fe-fill" style="width:0%;background:${e.color}" data-pct="${pct}"></div>
+        </div>
+        <span class="fe-count">${counts[e.key]}</span>
+      </div>
+    `;
+  }).join('');
+
+  setTimeout(() => {
+    barsEl.querySelectorAll('.fe-fill').forEach(el => {
+      el.style.width = el.dataset.pct + '%';
+    });
+  }, 300);
+
+  const dominant = Object.entries(counts).sort((a,b) => b[1]-a[1])[0][0];
+  const lacking = Object.entries(counts).sort((a,b) => a[1]-b[1])[0][0];
+  const NOTES = { 木:'成長・発展・創造の気が支配的', 火:'情熱・表現・人脈の気が支配的', 土:'安定・信頼・実力の気が支配的', 金:'決断・変革・精鋭の気が支配的', 水:'知性・直感・柔軟の気が支配的' };
+  const LACK  = { 木:'行動力・計画性を意識的に補うと吉', 火:'情熱・自己表現を外に出すことで運が開ける', 土:'継続力・根を張ることが今世の課題', 金:'決断力・整理整頓の習慣が運勢を上げる', 水:'直感を磨き流れに乗る練習が吉運を呼ぶ' };
+  document.getElementById('feNote').innerHTML =
+    `支配五行：<strong>${dominant}　─　${NOTES[dominant]}</strong><br>補うべき五行：${lacking}　─　${LACK[lacking]}`;
+}
+
+// Enter key support
+document.addEventListener('keydown', e => { if (e.key === 'Enter') divine(); });
+</script>
+</body>
+</html>
